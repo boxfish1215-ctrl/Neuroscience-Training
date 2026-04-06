@@ -103,7 +103,7 @@
                 setgame: { 
                     title: "SET 逻辑", en: "Set Logic", icon: "shapes", color: "text-green-500", time: 60, 
                     homeBasic: "逻辑处理", homeHard: "进阶图形匹配",
-                    guide: { goal: "模式识别与逻辑推理", play: "寻找满足颜色或形状逻辑的组合。", effect: "考验空间逻辑和发散性思维。" }
+                    guide: { goal: "模式识别与逻辑推理", play: "选出的三张卡片，在颜色、形状或填充的每一个维度上，必须满足“全部相同”或“各不相同”。", effect: "考验空间逻辑和发散性思维。" }
                 },
             };
 
@@ -350,23 +350,37 @@
                                         </div>
                                     </div>
                                 )}
-                                {view === 'setgame' && (
-                                    <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
-                                        {setGame.cards.map(card => (
-                                            <button key={card.id} onClick={() => {
-                                                const newSel = setGame.selected.includes(card.id) ? setGame.selected.filter(id => id !== card.id) : [...setGame.selected, card.id];
-                                                if(newSel.length === 3) {
-                                                    const [c1, c2, c3] = newSel.map(id => setGame.cards.find(c => c.id === id));
-                                                    const match = (c1.color===c2.color && c2.color===c3.color) || (c1.shape!==c2.shape && c2.shape!==c3.shape && c1.shape!==c3.shape);
-                                                    if(match) { setScore(s=>s+100); mode === 'comp' ? switchArenaTask() : initGameCore('setgame'); }
-                                                    else { handleArenaError(); setSetGame(p=>({...p, selected: []})); }
-                                                } else setSetGame(p=>({...p, selected: newSel}));
-                                            }} className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-all ${setGame.selected.includes(card.id) ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100 bg-white'}`}>
-                                                <div style={{color: card.color}} className={card.fill ? 'opacity-100' : 'opacity-30'}><Icon name={card.shape} className="w-10 h-10" /></div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                               {view === 'setgame' && (
+    <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
+        {setGame.cards.map(card => (
+            <button key={card.id} onClick={() => {
+                const newSel = setGame.selected.includes(card.id) ? setGame.selected.filter(id => id !== card.id) : [...setGame.selected, card.id];
+                if(newSel.length === 3) {
+                    const selectedCards = newSel.map(id => setGame.cards.find(c => c.id === id));
+                    
+                    // 定义属性检查函数：三项属性必须“全相同”或“全不同”
+                    const checkProp = (p1, p2, p3) => (p1 === p2 && p2 === p3) || (p1 !== p2 && p2 !== p3 && p1 !== p3);
+                    
+                    const isColorMatch = checkProp(selectedCards[0].color, selectedCards[1].color, selectedCards[2].color);
+                    const isShapeMatch = checkProp(selectedCards[0].shape, selectedCards[1].shape, selectedCards[2].shape);
+                    const isFillMatch = checkProp(selectedCards[0].fill, selectedCards[1].fill, selectedCards[2].fill);
+
+                    if(isColorMatch && isShapeMatch && isFillMatch) { 
+                        setScore(s => s + 100); 
+                        mode === 'comp' ? switchArenaTask() : initGameCore('setgame'); 
+                    } else { 
+                        handleArenaError(); 
+                        setSetGame(p => ({...p, selected: []})); 
+                    }
+                } else {
+                    setSetGame(p => ({...p, selected: newSel}));
+                }
+            }} className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-all ${setGame.selected.includes(card.id) ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100 bg-white'}`}>
+                <div style={{color: card.color}} className={card.fill ? 'opacity-100' : 'opacity-30'}><Icon name={card.shape} className="w-10 h-10" /></div>
+            </button>
+        ))}
+    </div>
+)}
                             </div>
                         </div>
                     )}
